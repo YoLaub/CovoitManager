@@ -1,0 +1,41 @@
+import React, { useEffect, useState } from "react";
+import { getCovoitureurs } from "../api/api";
+import CovoitureurCard from "../components/CovoitureurCard";
+
+interface Covoitureur {
+    id: number;
+    nom: string;
+    email: string;
+    solde: number;
+}
+
+const Dashboard: React.FC = () => {
+    const [covoitureurs, setCovoitureurs] = useState<Covoitureur[]>([]);
+
+    useEffect(() => {
+        async function fetchData() {
+            const data = await getCovoitureurs();
+            setCovoitureurs(data);
+        }
+        fetchData();
+    }, []);
+
+    return (
+        <div>
+            <h2>Liste des covoitureurs</h2>
+            <div className="card-container">
+                {covoitureurs.map(c => (
+                    <CovoitureurCard
+                        key={c.id}
+                        id={c.id}
+                        nom={c.nom}
+                        email={c.email}
+                        solde={c.solde}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
+
+export default Dashboard;
