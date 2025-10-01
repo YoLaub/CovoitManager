@@ -26,7 +26,7 @@ function App() {
                 </header>
 
                 {/* Contenu */}
-                <main className="flex-1 mt-20 p-6 bg-gray-50">
+                <main className="flex-col m-24">
                     <Routes>
                         <Route path="/" element={<Navigate to="/calendar" replace />} />
                         <Route path="/calendar" element={<MyCalendar />} />

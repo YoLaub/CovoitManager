@@ -22,8 +22,8 @@ const Dashboard: React.FC = () => {
 
     return (
         <div>
-            <h2>Liste des covoitureurs</h2>
-            <div className="card-container">
+            <h2 className="text-2xl font-semibold tracking-tight text-gray-900">Liste des covoitureurs</h2>
+            <div>
                 {covoitureurs.map(c => (
                     <CovoitureurCard
                         key={c.id}

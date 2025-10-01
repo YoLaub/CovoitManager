@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import { Car } from 'lucide-react';
 
 type Covoitureur = {
     id: number;
@@ -110,20 +111,20 @@ export default function CalendarWithPresence() {
 
 
     return (
-        <div className="flex flex-col items-center">
-            <Calendar onClickDay={handleDayClick} />
+        <div className="flex flex-col items-center mt-40">
+            <Calendar onClickDay={handleDayClick} className={"rounded-lg shadow-lg"}/>
 
             {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-start pt-20 z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-3xl">
+                <div className="fixed inset-0 bg-blue-950/40 flex justify-center items-start pt-20 z-50">
+                    <div className="bg-gradient-to-t from-blue-200 to-white text p-6 rounded-lg shadow-lg w-11/12 max-w-3xl">
                         <h2 className="text-lg font-semibold mb-4">
                             Présence du {date?.toLocaleDateString()}
                         </h2>
 
                         {/* Choix des trajets pour Aller/Retour */}
-                        <div className="mb-4 flex gap-4">
+                        <div className="mb-4 flex flex-col gap-4">
                             <div>
-                                <label className="block text-sm">Trajet — Aller</label>
+                                <label className="block text-sm">Trajet — Aller <Car size={32}/></label>
                                 {trajets.length > 0 && (
                                     <select
                                         value={trajetAllerId ?? trajets[1].id}
@@ -140,7 +141,7 @@ export default function CalendarWithPresence() {
                             </div>
 
                             <div>
-                                <label className="block text-sm">Trajet — Retour</label>
+                                <label className="block text-sm">Trajet — Retour<Car size={32} className="transform scale-x-[-1]"/></label>
                                 <select
                                     value={trajetRetourId ?? ""}
                                     onChange={(e) => setTrajetRetourId(Number(e.target.value) || null)}
@@ -148,7 +149,7 @@ export default function CalendarWithPresence() {
                                 >
                                     {trajets.map((t) => (
                                         <option key={t.id} value={t.id}>
-                                            {t.lieuDepart ?? "?"} → {t.lieuArrivee ?? "?"} ({t.id})
+                                            {t.lieuDepart ?? "?"} - {t.lieuArrivee ?? "?"}
                                         </option>
                                     ))}
                                 </select>
@@ -192,7 +193,7 @@ export default function CalendarWithPresence() {
                         <div className="mt-4 flex justify-end gap-2">
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+                                className="px-3 py-1 bg-red-400 rounded hover:bg-red-600 text-white"
                             >
                                 Annuler
                             </button>
