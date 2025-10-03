@@ -4,13 +4,16 @@ import com.covoiturage.model.Covoitureur;
 import com.covoiturage.model.Presence;
 import com.covoiturage.model.Trajet;
 import com.covoiturage.service.CovoiturageService;
+import com.covoiturage.service.SendMail;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/covoiturage")
@@ -87,14 +90,6 @@ public class CovoiturageController {
         return covoiturageService.updateTrajetPrix(id, prix);
     }
 
-    @PostMapping("/presence/{trajetId}/{covoitureurId}")
-    public Presence addPresence(@PathVariable Long trajetId,
-                                @PathVariable Long covoitureurId,
-                                @RequestParam String date){
-        return covoiturageService.enregistrerPresence(trajetId, covoitureurId, LocalDate.parse(date));
-    }
-
-
 
     // Remettre tous les soldes à zéro
     @PutMapping("/covoitureur/reset-soldes")
@@ -103,12 +98,38 @@ public class CovoiturageController {
         return "Tous les soldes ont été remis à zéro ✅";
     }
 
+    // Remettre tous les soldes à zéro
+    @PutMapping("/covoitureur/reset-solde")
+    public ResponseEntity<?> resetSolde(@RequestBody Map<String,Long> body) {
+       Long id = body.get("id");
+       covoiturageService.resetSolde(id);
+       return ResponseEntity.ok("Solde réinitialisé pour le covoitureur " + id);
+    }
+
 
     @GetMapping("/covoitureur/{id}/solde")
     public double getSolde(@PathVariable Long id) {
         return covoiturageService.getSoldeByCovoitureurId(id);
     }
 
+
+    @PostMapping("/send")
+    public ResponseEntity<?> sendEmail(@RequestBody Map<String,String> body) throws IOException {
+        String email = body.get("email");
+        String message = body.get("message");
+        try {
+            SendMail.sendEmail(email, message);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Email envoyé à " + email
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "success", false,
+                    "error", e.getMessage()
+            ));
+        }
+    }
 
 
 }

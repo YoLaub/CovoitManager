@@ -31,6 +31,13 @@ const Dashboard: React.FC = () => {
                         nom={c.nom}
                         email={c.email}
                         solde={c.solde}
+                        onResetSolde={(id) => {
+                            setCovoitureurs(prev =>
+                                prev.map(cv =>
+                                    cv.id === id ? { ...cv, solde: 0 } : cv
+                                )
+                            );
+                        }}
                     />
                 ))}
             </div>

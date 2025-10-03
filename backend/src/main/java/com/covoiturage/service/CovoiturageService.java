@@ -7,10 +7,12 @@ import com.covoiturage.repository.CovoitureurRepository;
 import com.covoiturage.repository.PresenceRepository;
 import com.covoiturage.repository.TrajetRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CovoiturageService {
@@ -107,42 +109,6 @@ public class CovoiturageService {
         return trajetRepo.save(trajet);
     }
 
-    // Ajoute une présence et met à jour les soldes
-    public Presence enregistrerPresence(Long trajetId, Long covoitureurId, LocalDate date) {
-        boolean present = true;
-        Trajet trajet = trajetRepo.findById(trajetId)
-                .orElseThrow(() -> new RuntimeException("Trajet introuvable"));
-        Covoitureur covoitureur = covoitRepo.findById(covoitureurId)
-                .orElseThrow(() -> new RuntimeException("Covoitureur introuvable"));
-
-        // Sauvegarde la présence
-        Presence presence = new Presence();
-        presence.setTrajet(trajet);
-        presence.setCovoitureur(covoitureur);
-        presence.setDate(date);
-        presence.setPresent(present);
-        presenceRepo.save(presence);
-
-        // 🔥 Recalcule le prix par covoitureur pour ce trajet et cette date
-        List<Presence> presences = presenceRepo.findAll()
-                .stream()
-                .filter(p -> p.getTrajet().getId().equals(trajetId) && p.getDate().equals(date))
-                .toList();
-
-        if (!presences.isEmpty()) {
-            double part = trajet.getPrix() / presences.size();
-
-            // Met à jour le solde de chaque covoitureur
-            for (Presence p : presences) {
-                Covoitureur cv = p.getCovoitureur();
-                cv.setSolde(cv.getSolde() + part);
-                covoitRepo.save(cv);
-            }
-        }
-
-        return presenceRepo.save(presence);
-    }
-
 
 
     // Remet à zéro les soldes de tous les covoitureurs
@@ -152,6 +118,18 @@ public class CovoiturageService {
             c.setSolde(0.0);
             covoitRepo.save(c);
         }
+    }
+
+    // Remet à zéro les soldes de tous les covoitureurs
+    public void resetSolde(Long covoitId) {
+        Optional<Covoitureur> c = covoitRepo.findById(covoitId);
+        if (c.isPresent()) {
+            c.get().setSolde(0.0);
+            covoitRepo.save(c.get());
+        } else {
+            throw new RuntimeException("Covoitureur introuvable");
+        }
+
     }
 
     public double getSoldeByCovoitureurId(Long covoitId) {

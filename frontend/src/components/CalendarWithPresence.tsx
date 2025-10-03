@@ -42,7 +42,6 @@ export default function CalendarWithPresence() {
     const [trajetAllerId, setTrajetAllerId] = useState<number | null>(null);
     const [trajetRetourId, setTrajetRetourId] = useState<number | null>(null);
 
-    console.log(presences["2025-09-05"])
     useEffect(() => {
         // covoitureurs
         fetch("http://localhost:8080/api/covoiturage/covoitureur")
@@ -136,7 +135,6 @@ export default function CalendarWithPresence() {
                 grouped[p.date].push(p);
             }
             setPresences(grouped);
-            console.log(presences)
             setShowModal(false);
             setSelectedAllerIds([]);
             setSelectedRetourIds([]);

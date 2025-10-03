@@ -17,4 +17,13 @@ export async function addCovoitureur(data: {nom: string, email: string, solde: n
     return res.json();
 }
 
+export async function resetSoldeCovoitureur(data: {id: number}) {
+    const res = await fetch(`${API_BASE}/covoitureur/reset-solde`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+    });
+    return res.text();
+}
+
 // Ajoute d'autres fonctions pour trajets, présences, etc.
