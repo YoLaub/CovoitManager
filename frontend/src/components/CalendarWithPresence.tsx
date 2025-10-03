@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { Car } from 'lucide-react';
+import {getColorFromId, formatDate} from "../functions/Utils.tsx"
 
 type Covoitureur = {
     id: number;
@@ -17,11 +18,21 @@ type Trajet = {
     prix?: number;
 };
 
+type Presence = {
+    id: number;
+    date: string; // format yyyy-mm-dd
+    present: boolean;
+    covoitureur: Covoitureur;
+    trajet: Trajet;
+};
+
 export default function CalendarWithPresence() {
     const [date, setDate] = useState<Date | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [covoitureurs, setCovoitureurs] = useState<Covoitureur[]>([]);
     const [trajets, setTrajets] = useState<Trajet[]>([]);
+    const [presences, setPresences] = useState<Record<string, Presence[]>>({});
+    const grouped: Record<string, Presence[]> = {};
 
     // états séparés pour Aller et Retour
     const [selectedAllerIds, setSelectedAllerIds] = useState<number[]>([]);
@@ -31,6 +42,7 @@ export default function CalendarWithPresence() {
     const [trajetAllerId, setTrajetAllerId] = useState<number | null>(null);
     const [trajetRetourId, setTrajetRetourId] = useState<number | null>(null);
 
+    console.log(presences["2025-09-05"])
     useEffect(() => {
         // covoitureurs
         fetch("http://localhost:8080/api/covoiturage/covoitureur")
@@ -48,6 +60,19 @@ export default function CalendarWithPresence() {
                     setTrajetAllerId(data[1].id);
                     if (data.length > 1) setTrajetRetourId(data[2].id);
                 }
+            })
+            .catch(console.error);
+
+        // présences
+        fetch("http://localhost:8080/api/covoiturage/presence")
+            .then((r) => r.json())
+            .then((data: Presence[]) => {
+                const grouped: Record<string, Presence[]> = {};
+                for (const p of data) {
+                    if (!grouped[p.date]) grouped[p.date] = [];
+                    grouped[p.date].push(p);
+                }
+                setPresences(grouped);
             })
             .catch(console.error);
     }, []);
@@ -101,6 +126,17 @@ export default function CalendarWithPresence() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload), // envoi d'un tableau complet
             });
+
+            // refresh presences
+            const res = await fetch("http://localhost:8080/api/covoiturage/presence");
+            const updated: Presence[] = await res.json();
+
+            for (const p of updated) {
+                if (!grouped[p.date]) grouped[p.date] = [];
+                grouped[p.date].push(p);
+            }
+            setPresences(grouped);
+            console.log(presences)
             setShowModal(false);
             setSelectedAllerIds([]);
             setSelectedRetourIds([]);
@@ -112,7 +148,30 @@ export default function CalendarWithPresence() {
 
     return (
         <div className="flex flex-col items-center mt-40">
-            <Calendar onClickDay={handleDayClick} className={"rounded-lg shadow-lg"}/>
+            <Calendar onClickDay={handleDayClick} className={"rounded-lg shadow-lg"}
+                      tileContent={({ date, view }) => {
+                          console.log( presences[formatDate(date)])
+                          if (view === "month") {
+
+                              const dayPresences = presences[formatDate(date)]; // [{covoitureurId, nom, couleur}, ...]
+
+                              if (presences) {
+                                  return (
+                                      <div className="flex gap-1 justify-center mt-1">
+                                          {(dayPresences || []).map((p, i) => (
+                                              <span
+                                                  key={i}
+                                                  className="w-2 h-2 rounded-full"
+                                                  style={{ backgroundColor: getColorFromId(p.covoitureur.id) }}
+                                                  title={p.covoitureur.nom}
+                                              ></span>
+                                          ))}
+                                      </div>
+                                  );
+                              }
+                          }
+                          return null;
+                      }}/>
 
             {showModal && (
                 <div className="fixed inset-0 bg-blue-950/40 flex justify-center items-start pt-20 z-50">
